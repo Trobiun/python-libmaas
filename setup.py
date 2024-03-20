@@ -49,7 +49,7 @@ setup(
         'maas.client.bones.testing': ['*.json'],
     },
     install_requires=[
-        "aiohttp >= 2.0.0",
+        "aiohttp >= 2.0.0, < 4.0.0a0",
         "argcomplete >= 1.0",
         "colorclass >= 1.2.0",
         "macaroonbakery >= 1.1.3",

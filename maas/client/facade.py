@@ -105,6 +105,13 @@ class Client:
         }
 
     @facade
+    def discoveries(origin):
+        return {
+            "get": origin.Discovery.read,
+            "list": origin.Discoveries.read,
+        }
+
+    @facade
     def dnsresources(origin):
         return {
             "get": origin.DNSResource.read,
