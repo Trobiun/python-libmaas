@@ -9,6 +9,8 @@ from testtools.matchers import Equals
 from ..testing import bind
 from ...testing import make_string_without_spaces, TestCase
 
+from ...errors import ParameterNotSupplied, OperationNotAllowed
+
 
 def make_origin():
     """
@@ -38,6 +40,28 @@ class TestDiscoveries(TestCase):
         discoveries = Discoveries.read()
         self.assertThat(len(discoveries), Equals(2))
 
+    def test__discoveries_clear_no_parameter(self):
+        Discoveries = make_origin().Discoveries
+        self.assertRaises(ParameterNotSupplied, Discoveries.clear)
+
+    def test__discoveries_clear_all(self):
+        Discoveries = make_origin().Discoveries
+        Discoveries.clear(all=True)
+        Discoveries._handler.clear.assert_called_once_with(
+            all=True, mdns=False, neighbours=False
+        )
+
+    def test__discoveries_scan_all_not_force(self):
+        Discoveries = make_origin().Discoveries
+        self.assertRaises(OperationNotAllowed, Discoveries.scan)
+
+    def test__discoveries_scan_all_force(self):
+        Discoveries = make_origin().Discoveries
+        Discoveries.scan(force=True)
+        Discoveries._handler.scan.assert_called_once_with(
+            always_use_ping=False, force=True, slow=False, threads=0
+        )
+
 
 class TestDiscovery(TestCase):
 
@@ -54,6 +78,6 @@ class TestDiscovery(TestCase):
         }
         Discovery._handler.read.return_value = discovery
         self.assertThat(
-            Discovery.read(id=discovery["id"]), Equals(Discovery(discovery))
+            Discovery.read(discovery_id=discovery["id"]), Equals(Discovery(discovery))
         )
         Discovery._handler.read.assert_called_once_with(discovery_id=discovery["id"])

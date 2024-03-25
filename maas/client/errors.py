@@ -21,5 +21,9 @@ class CannotDelete(Exception):
     """Object cannot be deleted."""
 
 
+class ParameterNotSupplied(Exception):
+    """One parameter is not supplied."""
+
+
 class PowerError(MAASException):
     """Machine failed to power on or off."""
