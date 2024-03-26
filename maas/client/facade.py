@@ -109,6 +109,8 @@ class Client:
         return {
             "get": origin.Discovery.read,
             "list": origin.Discoveries.read,
+            "clear": origin.Discoveries.clear,
+            "scan": origin.Discoveries.scan,
         }
 
     @facade
