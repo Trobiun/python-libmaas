@@ -1187,7 +1187,6 @@ class Origin(OriginBase, metaclass=OriginType):
             ".machines",
             ".nodes",
             ".partitions",
-            ".pods",
             ".raids",
             ".resource_pools",
             ".spaces",
@@ -1198,6 +1197,7 @@ class Origin(OriginBase, metaclass=OriginType):
             ".users",
             ".version",
             ".vlans",
+            ".vm_hosts",
             ".volume_groups",
             ".zones",
         }

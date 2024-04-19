@@ -20,7 +20,7 @@ from . import (
 from .fabrics import Fabric
 from .interfaces import Interface
 from .nodes import Node, Nodes, NodesType, NodeTypeMeta
-from .pods import Pod
+from .vm_hosts import VmHost
 from .subnets import Subnet
 from .zones import Zone
 from ..bones import CallError
@@ -111,10 +111,10 @@ class MachinesType(NodesType):
         fabrics: typing.Sequence[FabricParam] = None,
         interfaces: typing.Sequence[InterfaceParam] = None,
         memory: float = None,
-        pod: typing.Union[str, Pod] = None,
-        not_pod: typing.Union[str, Pod] = None,
-        pod_type: str = None,
-        not_pod_type: str = None,
+        vmhost: typing.Union[str, VmHost] = None,
+        not_vmhost: typing.Union[str, VmHost] = None,
+        vmhost_type: str = None,
+        not_vmhost_type: str = None,
         storage: typing.Sequence[str] = None,
         subnets: typing.Sequence[SubnetParam] = None,
         tags: typing.Sequence[str] = None,
@@ -146,14 +146,14 @@ class MachinesType(NodesType):
         :type interfaces: sequence of either `str`, `int`, or `Interface`
         :param memory: The minimum amount of RAM to match in MiB.
         :type memory: `int`
-        :param pod: The pod to allocate the machine from.
-        :type pod: `str`
-        :param not_pod: Pod the machine must not be located in.
-        :type not_pod: `str`
-        :param pod_type: The type of pod to allocate the machine from.
-        :type pod_type: `str`
-        :param not_pod_type: Pod type the machine must not be located in.
-        :type not_pod_type: `str`
+        :param vmhost: The vmhost to allocate the machine from.
+        :type vmhost: `str`
+        :param not_vmhost: VmHost the machine must not be located in.
+        :type not_vmhost: `str`
+        :param vmhost_type: The type of vmhost to allocate the machine from.
+        :type vmhost_type: `str`
+        :param not_vmhost_type: VmHost type the machine must not be located in.
+        :type not_vmhost_type: `str`
         :param subnets: The subnet(s) the desired machine must be linked to.
         :type subnets: sequence of `str` or `int` or `Subnet`
         :param storage: The storage contraint to match.
@@ -197,8 +197,8 @@ class MachinesType(NodesType):
                 "arch": architectures,
                 "cpu_count": str(cpus) if cpus else None,
                 "mem": str(memory) if memory else None,
-                "pod_type": pod_type,
-                "not_pod_type": not_pod_type,
+                "vmhost_type": vmhost_type,
+                "not_vmhost_type": not_vmhost_type,
                 "storage": storage,
                 "tags": tags,
                 "not_tags": not_tags,
@@ -221,21 +221,24 @@ class MachinesType(NodesType):
                 get_param_arg("interfaces", idx, Interface, nic)
                 for idx, nic in enumerate(interfaces)
             ]
-        if pod is not None:
-            if isinstance(pod, Pod):
-                params["pod"] = pod.name
-            elif isinstance(pod, str):
-                params["pod"] = pod
-            else:
-                raise TypeError("pod must be a str or Pod, not %s" % type(pod).__name__)
-        if not_pod is not None:
-            if isinstance(not_pod, Pod):
-                params["not_pod"] = not_pod.name
-            elif isinstance(not_pod, str):
-                params["not_pod"] = not_pod
+        if vmhost is not None:
+            if isinstance(vmhost, VmHost):
+                params["vmhost"] = vmhost.name
+            elif isinstance(vmhost, str):
+                params["vmhost"] = vmhost
             else:
                 raise TypeError(
-                    "not_pod must be a str or Pod, not %s" % type(not_pod).__name__
+                    "vmhost must be a str or VMHost, not %s" % type(vmhost).__name__
+                )
+        if not_vmhost is not None:
+            if isinstance(not_vmhost, VmHost):
+                params["not_vmhost"] = not_vmhost.name
+            elif isinstance(not_vmhost, str):
+                params["not_vmhost"] = not_vmhost
+            else:
+                raise TypeError(
+                    "not_vmhost must be a str or VMHost, not %s"
+                    % type(not_vmhost).__name__
                 )
         if subnets is not None:
             params["subnets"] = [
@@ -373,7 +376,7 @@ class Machine(Node, metaclass=MachineType):
     status_name = ObjectField.Checked("status_name", check(str), readonly=True)
     raids = ObjectFieldRelatedSet("raids", "Raids", reverse=None)
     volume_groups = ObjectFieldRelatedSet("volume_groups", "VolumeGroups", reverse=None)
-    pod = ObjectFieldRelated("pod", "Pod", readonly=True)
+    vmhost = ObjectFieldRelated("vmhost", "VmHost", readonly=True)
 
     async def save(self):
         """Save the machine in MAAS."""
@@ -671,7 +674,7 @@ class Machine(Node, metaclass=MachineType):
                     self._reset(await self._handler.read(system_id=self.system_id))
                 except CallError as error:
                     if error.status == HTTPStatus.NOT_FOUND:
-                        # Release must have been on a machine in a pod. This
+                        # Release must have been on a machine in a vmhost. This
                         # machine no longer exists. Just return the machine
                         # as it has been released.
                         return self

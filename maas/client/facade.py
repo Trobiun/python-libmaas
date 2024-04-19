@@ -151,11 +151,11 @@ class Client:
         }
 
     @facade
-    def pods(origin):
+    def vm_hosts(origin):
         return {
-            "create": origin.Pods.create,
-            "list": origin.Pods.read,
-            "get": origin.Pod.read,
+            "create": origin.VmHosts.create,
+            "list": origin.VmHosts.read,
+            "get": origin.VmHost.read,
         }
 
     @facade

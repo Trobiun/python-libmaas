@@ -1,6 +1,6 @@
-"""Objects for pods."""
+"""Objects for VMHosts."""
 
-__all__ = ["Pod", "Pods"]
+__all__ = ["VmHost", "VmHosts"]
 
 import typing
 from . import check, Object, ObjectField, ObjectFieldRelated, ObjectSet, ObjectType
@@ -9,8 +9,8 @@ from ..utils import remove_None
 from ..errors import OperationNotAllowed
 
 
-class PodsType(ObjectType):
-    """Metaclass for `Pods`."""
+class VmHostsType(ObjectType):
+    """Metaclass for `VMHosts`."""
 
     async def read(cls):
         data = await cls._handler.read()
@@ -24,29 +24,30 @@ class PodsType(ObjectType):
         power_user: str = None,
         power_pass: str = None,
         name: str = None,
+        pool: str = None,
         zone: typing.Union[str, Zone] = None,
         tags: typing.Sequence[str] = None
     ):
-        """Create a `Pod` in MAAS.
+        """Create a `VMHost` in MAAS.
 
-        :param type: Type of pod to create (rsd, virsh) (required).
+        :param type: Type of VMHost to create (lxd, virsh) (required).
         :type name: `str`
-        :param power_address: Address for power control of the pod (required).
+        :param power_address: Address for power control of the VMHost (required).
         :type power_address: `str`
-        :param power_user: User for power control of the pod
-            (required for rsd).
+        :param power_user: User for power control of the VMHost
+            (required).
         :type power_user: `str`
-        :param power_pass: Password for power control of the pod
-            (required for rsd).
+        :param power_pass: Password for power control of the VMHost
+            (required).
         :type power_pass: `str`
-        :param name: Name for the pod (optional).
+        :param name: Name for the VMHost (optional).
         :type name: `str`
-        :param zone: Name of the zone for the pod (optional).
+        :param zone: Name of the zone for the VMHost (optional).
         :type zone: `str` or `Zone`
-        :param tags: A tag or tags (separated by comma) for the pod.
+        :param tags: A tag or tags (separated by comma) for the VMHost.
         :type tags: `str`
-        :returns: The created Pod.
-        :rtype: `Pod`
+        :returns: The created VMHost.
+        :rtype: `VMHost`
         """
         params = remove_None(
             {
@@ -56,13 +57,14 @@ class PodsType(ObjectType):
                 "power_pass": power_pass,
                 "name": name,
                 "tags": tags,
+                "pool": pool,
             }
         )
-        if type == "rsd" and power_user is None:
-            message = "'power_user' is required for pod type `rsd`"
+        if power_user is None:
+            message = "'power_user' is required for VMHost"
             raise OperationNotAllowed(message)
-        if type == "rsd" and power_pass is None:
-            message = "'power_pass' is required for pod type `rsd`"
+        if power_pass is None:
+            message = "'power_pass' is required for VMHost"
             raise OperationNotAllowed(message)
         if zone is not None:
             if isinstance(zone, Zone):
@@ -76,21 +78,21 @@ class PodsType(ObjectType):
         return cls._object(await cls._handler.create(**params))
 
 
-class Pods(ObjectSet, metaclass=PodsType):
-    """The set of `Pods` stored in MAAS."""
+class VmHosts(ObjectSet, metaclass=VmHostsType):
+    """The set of `VMHosts` stored in MAAS."""
 
 
-class PodType(ObjectType):
-    """Metaclass for a `Pod`."""
+class VmHostType(ObjectType):
+    """Metaclass for a `VMHost`."""
 
     async def read(cls, id: int):
-        """Get `Pod` by `id`."""
+        """Get `VMHost` by `id`."""
         data = await cls._handler.read(id=id)
         return cls(data)
 
 
-class Pod(Object, metaclass=PodType):
-    """A `Pod` stored in MAAS."""
+class VmHost(Object, metaclass=VmHostType):
+    """A `VMHost` stored in MAAS."""
 
     id = ObjectField.Checked("id", check(int), readonly=True, pk=True)
     type = ObjectField.Checked("type", check(str), check(str))
@@ -114,11 +116,11 @@ class Pod(Object, metaclass=PodType):
     host = ObjectFieldRelated("host", "Node", readonly=True)
 
     async def save(self):
-        """Save the `Pod`."""
+        """Save the `VMHost`."""
         old_tags = list(self._orig_data["tags"])
         new_tags = list(self.tags)
         self._changed_data.pop("tags", None)
-        await super(Pod, self).save()
+        await super(VmHost, self).save()
         for tag_name in new_tags:
             if tag_name not in old_tags:
                 await self._handler.add_tag(id=self.id, tag=tag_name)
@@ -130,11 +132,11 @@ class Pod(Object, metaclass=PodType):
         self._data["tags"] = list(new_tags)
 
     async def refresh(self):
-        """Refresh the `Pod`."""
+        """Refresh the `VMHost`."""
         return await self._handler.refresh(id=self.id)
 
     async def parameters(self):
-        """Get the power parameters for the `Pod`."""
+        """Get the power parameters for the `VMHost`."""
         return await self._handler.parameters(id=self.id)
 
     async def compose(
@@ -150,7 +152,7 @@ class Pod(Object, metaclass=PodType):
         zone: typing.Union[int, str, Zone] = None,
         interfaces: typing.Sequence[str] = None
     ):
-        """Compose a machine from `Pod`.
+        """Compose a machine from `VMHost`.
 
         All fields below are optional:
 
@@ -161,7 +163,7 @@ class Pod(Object, metaclass=PodType):
         :param cpu_speed: Minimum amount of CPU speed (MHz).
         :type cpu_speed: `int`
         :param architecture: Architecture for the machine. Must be an
-            architecture that the pod supports.
+            architecture that the VMHost supports.
         :type architecture: `str`
         :param storage: A list of storage constraint identifiers, in the form:
             <label>:<size>(<tag>[,<tag>[,...])][,<label>:...]
@@ -231,5 +233,5 @@ class Pod(Object, metaclass=PodType):
         return await self._handler.compose(**params, id=self.id)
 
     async def delete(self):
-        """Delete the `Pod`."""
+        """Delete the `VMHost`."""
         return await self._handler.delete(id=self.id)

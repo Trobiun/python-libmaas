@@ -213,10 +213,11 @@ class cmd_allocate(OriginCommand):
             ),
         )
         parser.add_argument(
-            "--pod", help=("Pod the desired machine must be located in.")
+            "--vmhost", help=("VMHost the desired machine must be located in.")
         )
         parser.add_argument(
-            "--pod-type", help=("Pod type the desired machine must be located in.")
+            "--vmhost-type",
+            help=("VMHost type the desired machine must be located in."),
         )
         parser.add_argument(
             "--subnet",
@@ -314,8 +315,8 @@ class cmd_allocate(OriginCommand):
                 "memory": options.memory,
                 "fabrics": options.fabric,
                 "interfaces": options.interface,
-                "pod": options.pod,
-                "pod_type": options.pod_type,
+                "vmhost": options.vmhost,
+                "vmhost_type": options.vmhost_type,
                 "subnets": options.subnet,
                 "tags": options.tag,
                 "not_fabrics": options.not_fabric,

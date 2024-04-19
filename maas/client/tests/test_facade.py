@@ -241,14 +241,14 @@ class TestClient(TestCase):
             ),
         )
 
-    def test__client_maps_pods(self):
+    def test__client_maps_vmhosts(self):
         self.assertThat(
             self.client,
             MatchesClient(
-                pods=MatchesFacade(
-                    create=self.origin.Pods.create,
-                    get=self.origin.Pod.read,
-                    list=self.origin.Pods.read,
+                vm_hosts=MatchesFacade(
+                    create=self.origin.VmHosts.create,
+                    get=self.origin.VmHost.read,
+                    list=self.origin.VmHosts.read,
                 )
             ),
         )

@@ -17,15 +17,15 @@ from ...bones.testing import api_descriptions
 from ...enum import NodeStatus, PowerState, PowerStopMode
 from ...errors import OperationNotAllowed
 from ...testing import make_name_without_spaces, TestCase
-from ..pods import Pod, Pods
+from ..vm_hosts import VmHost, VmHosts
 
 
-def make_pods_origin():
+def make_vm_hosts_origin():
     """
-    Create a new origin with Pods and Pod. The former
+    Create a new origin with VmHosts and VmHost. The former
     refers to the latter via the origin, hence why it must be bound.
     """
-    return bind(Pods, Pod)
+    return bind(VmHosts, VmHost)
 
 
 def make_machines_origin():
@@ -951,9 +951,9 @@ class TestMachines(TestCase):
             not_tags=["baz"],
         )
 
-    def test__allocate_with_pod(self):
-        Pod = make_pods_origin().Pod
-        pod = Pod({"name": make_name_without_spaces("pod")})
+    def test__allocate_with_vmhost(self):
+        VmHost = make_vm_hosts_origin().VmHost
+        vmhost = VmHost({"name": make_name_without_spaces("vmhost")})
         Machines = make_machines_origin().Machines
         Machines._handler.allocate.return_value = {}
         hostname = make_name_without_spaces("hostname")
@@ -964,7 +964,7 @@ class TestMachines(TestCase):
             memory=1024.0,
             tags=["foo", "bar"],
             not_tags=["baz"],
-            pod=pod.name,
+            vmhost=vmhost.name,
         )
         Machines._handler.allocate.assert_called_once_with(
             name=hostname,  # API parameter is actually name, not hostname
@@ -973,12 +973,12 @@ class TestMachines(TestCase):
             mem="1024.0",
             tags=["foo", "bar"],
             not_tags=["baz"],
-            pod=pod.name,
+            vmhost=vmhost.name,
         )
 
-    def test__allocate_with_not_pod(self):
-        Pod = make_pods_origin().Pod
-        pod = Pod({"name": make_name_without_spaces("pod")})
+    def test__allocate_with_not_vmhost(self):
+        VmHost = make_vm_hosts_origin().VmHost
+        vmhost = VmHost({"name": make_name_without_spaces("vmhost")})
         Machines = make_machines_origin().Machines
         Machines._handler.allocate.return_value = {}
         hostname = make_name_without_spaces("hostname")
@@ -989,7 +989,7 @@ class TestMachines(TestCase):
             memory=1024.0,
             tags=["foo", "bar"],
             not_tags=["baz"],
-            not_pod=pod.name,
+            not_vmhost=vmhost.name,
         )
         Machines._handler.allocate.assert_called_once_with(
             name=hostname,  # API parameter is actually name, not hostname
@@ -998,7 +998,7 @@ class TestMachines(TestCase):
             mem="1024.0",
             tags=["foo", "bar"],
             not_tags=["baz"],
-            not_pod=pod.name,
+            not_vmhost=vmhost.name,
         )
 
     def test__get_power_parameters_for_with_empty_list(self):
